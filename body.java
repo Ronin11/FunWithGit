@@ -10,7 +10,7 @@ import java.awt.Color;
  *
  */
 
-public abstract class body {
+public class body {
 	public body(){
 		mass = 100;
 		size = 1;
