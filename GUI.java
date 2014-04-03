@@ -16,8 +16,10 @@ public class GUI {
 	
     public static void createAndShowGUI() {
         JFrame f = new JFrame("Gravity");
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
-        f.add(new MyPanel());
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        MyPanel pane = new MyPanel();
+        f.add(pane);
+        pane.setBackground(Color.black);
         f.pack();
         f.setVisible(true);
         
@@ -25,13 +27,17 @@ public class GUI {
 }
 
 class MyPanel extends JPanel {
-	private static int timerInt = 250;
+	private static int timerInt = 50;
 	ArrayList <Body> system = new ArrayList<Body>();
     public MyPanel() {
     	add(new Body(1000,20,Color.yellow,0,0,300,300));
-        add(new Body(10,5,Color.black,1,0,200,200));
+        add(new Body(10,5,Color.white,1.5,0,200,200));
         //add(new Body(10,5,Color.red,-1,0,400,400));
         
+        
+        /** Add a Timer to run everything in specific intervals, that 
+         * can be changed 
+         */
         ActionListener updateClockAction = new ActionListener() {
     		@Override
     		public void actionPerformed(ActionEvent e) {
@@ -44,6 +50,7 @@ class MyPanel extends JPanel {
     }
     
    public void add(Body b){system.add(b);}
+   public void changeTime(int t){timerInt = t;}
     
 
     public Dimension getPreferredSize() {

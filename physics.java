@@ -9,14 +9,15 @@ public class physics {
 		/***** Newton's universal law of gravitation with
 		    	the distance formula substituted for r^2 ****/
 		double force = ((G*m1.getMass()*m2.getMass())/
-				(Math.pow(m2.getposx()-m1.getposx(),2) 
-						+ Math.pow(m2.getposy() - m1.getposy(), 2)));
-		double angle = StrictMath.atan((m1.getposy()-m2.getposy())/(m1.getposx()-m2.getposx()));
-		System.out.println(angle*180);
+						 (StrictMath.pow((m2.getposx()-m1.getposx()),2) 
+						   + StrictMath.pow((m2.getposy() - m1.getposy()), 2)));
+		//System.out.println(force);
+		double angle = StrictMath.atan((m2.getposy()-m1.getposy())/(m2.getposx()-m1.getposx()));
+		//System.out.println(angle*180);
 		if(returnX)
-			force = StrictMath.cos(angle) * force;
+			force = force * StrictMath.cos(angle);
 		else
-			force = StrictMath.sin(angle) * force;
+			force = force * StrictMath.sin(angle);
 		return force;
 	}
 	
@@ -36,8 +37,8 @@ public class physics {
 				yAccel += calculateAcceleration(calculateGravity(b,body,false),b);
 			}
 		}
-		xAccel *= Multiplier; // Static Multipliers to
-		yAccel *= Multiplier; //  make things play nicer
+		xAccel = Multiplier * xAccel; // Static Multipliers to
+		yAccel = Multiplier * yAccel; //  make things play nicer
 		b.setvelx(b.getvelx()+xAccel);
 		b.setvely(b.getvely()+yAccel);
 	}
