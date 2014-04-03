@@ -13,7 +13,7 @@ import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 
 public class GUI {
-
+	
     public static void createAndShowGUI() {
         JFrame f = new JFrame("Gravity");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
@@ -25,11 +25,12 @@ public class GUI {
 }
 
 class MyPanel extends JPanel {
-
+	private static int timerInt = 250;
 	ArrayList <Body> system = new ArrayList<Body>();
     public MyPanel() {
-    	add(new Body(1000,20,Color.yellow,0,0,100,100));
+    	add(new Body(1000,20,Color.yellow,0,0,300,300));
         add(new Body(10,5,Color.black,1,0,200,200));
+        //add(new Body(10,5,Color.red,-1,0,400,400));
         
         ActionListener updateClockAction = new ActionListener() {
     		@Override
@@ -38,7 +39,7 @@ class MyPanel extends JPanel {
     	    	physics.calculateChanges(system);
     		    }	
     		};
-        	Timer time = new Timer(100, updateClockAction);
+        	Timer time = new Timer(timerInt, updateClockAction);
         	time.start();
     }
     
