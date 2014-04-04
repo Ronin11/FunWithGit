@@ -11,12 +11,12 @@ public class physics {
 		double force = ((G*m1.getMass()*m2.getMass())/
 						 (StrictMath.pow((m2.getposx()-m1.getposx()),2) 
 						   + StrictMath.pow((m2.getposy() - m1.getposy()), 2)));
-		//System.out.println(force);
+		
 		double angle = StrictMath.atan((m2.getposy()-m1.getposy())/(m2.getposx()-m1.getposx()));
-		//System.out.println(angle*180);
-		if(returnX)
+		
+		if(returnX) //If we want the X component of the force.
 			force = force * StrictMath.cos(angle);
-		else
+		else //Else, we want the Y component of the force.
 			force = force * StrictMath.sin(angle);
 		return force;
 	}

@@ -1,34 +1,202 @@
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Robot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class GUI {
 	
+	/** Set up the Frame and Menu Bar **/
     public static void createAndShowGUI() {
         JFrame f = new JFrame("Gravity");
+        JMenuBar menubar = new JMenuBar();
+        JMenu file,edit,help,changeMode;
+        
+        file = new JMenu("File");
+        edit = new JMenu("Edit");
+        help = new JMenu("Help");
+        changeMode = new JMenu("Change Mode...");
+        
+        JMenuItem changeSettings = new JMenuItem("Change Settings...");
+        JMenuItem voidofSpace = new JMenuItem("Black Void");
+        JMenuItem cloud = new JMenuItem("Gas Cloud");
+        JMenuItem solar = new JMenuItem("Solar System");
+        JMenuItem galaxy = new JMenuItem("Galaxy");
+        JMenuItem saveImage = new JMenuItem("Save Screen as Image");
+        JMenuItem fastForward = new JMenuItem("Speed Up Time");
+        JMenuItem slowDown	= new JMenuItem("Slow Down Time");
+        JMenuItem pause = new JMenuItem("Pause");
+        JMenuItem resume = new JMenuItem("Resume");
+        JMenuItem howto = new JMenuItem("How To...");
+        JMenuItem about = new JMenuItem("About"); 
+        
+        changeMode.add(voidofSpace);
+        changeMode.add(cloud);
+        changeMode.add(solar);
+        changeMode.add(galaxy);
+        file.add(saveImage);
+        file.add(changeMode);
+        edit.add(changeSettings);
+        edit.add(fastForward);
+        edit.add(slowDown);
+        edit.add(pause);
+        edit.add(resume);
+        help.add(howto);
+        help.add(about);
+        menubar.add(file);
+        menubar.add(edit);
+        menubar.add(help);
+        f.setJMenuBar(menubar);
+        
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        MyPanel pane = new MyPanel();
+        final MyPanel pane = new MyPanel();
         f.add(pane);
         pane.setBackground(Color.black);
         f.pack();
         f.setVisible(true);
         
+        /** Load the void of space loadout **/
+        voidofSpace.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+					MyPanel.clear();
+			}
+    		
+    	});
+        
+        /** Load the Gas Cloud loadout **/
+        cloud.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+					MyPanel.clear();
+					MyPanel.loadGas();
+			}
+    		
+    	});
+        
+        /** Load the Solar System loadout **/
+        solar.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+					MyPanel.clear();
+					MyPanel.loadSolar();
+			}
+    		
+    	});
+        
+        /** Load the Galaxy loadout **/
+        galaxy.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+					MyPanel.clear();
+					MyPanel.loadGalaxy();
+			}
+    		
+    	});
+        
+        /** If the Save Screen as image is clicked**/
+        saveImage.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+					try {
+						/** Write the screen to an image file. **/
+						File file = new File("Gravity ScreenShot.png");
+							if (!file.exists())
+							file.createNewFile();
+						BufferedImage image = new Robot().createScreenCapture(new Rectangle(pane.getLocationOnScreen().x, pane.getLocationOnScreen().y, pane.getWidth(), pane.getHeight()));
+						ImageIO.write(image, "png", file);
+						
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					} catch (AWTException e1) {
+						e1.printStackTrace();
+					}
+			}
+    		
+    	});
+        
+        /** Make the updateClockAction run more frequently **/
+        fastForward.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+					MyPanel.time.setDelay(MyPanel.time.getDelay() / 4);
+			}
+    		
+    	});
+        
+        /** Make the updateClockAction run less frequently **/
+        slowDown.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MyPanel.time.setDelay(MyPanel.time.getDelay() * 4);
+			}
+    		
+    	});
+        
+        /** Stop the timer, and pause the simulation **/
+        pause.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MyPanel.time.stop();
+			}
+    		
+    	});
+        
+        /** Start the timer and resume the simulation**/
+        resume.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MyPanel.time.start();
+			}
+    		
+    	});
+        
+        /** Open the about JOptionPane and talk about 
+               how great I am                         **/
+        about.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String output = "Gravity is the coolest dang physics simulator that "+
+					    "you ever did see. If you need instructions, refer " +
+					    "to the help menu." +
+						"<br><br>Program Deity: Nate Ashby	A01383689";
+				JOptionPane.showMessageDialog(pane,
+						"<html><body><p style='width: 250px;'>"+ output + "</body></html>",
+					    "About",
+					    JOptionPane.INFORMATION_MESSAGE);
+			}
+    		
+    	});
+        
     } 
 }
 
-class MyPanel extends JPanel {
+class MyPanel extends JPanel implements MouseListener{
+	public static Timer time;
 	private static int timerInt = 50;
-	ArrayList <Body> system = new ArrayList<Body>();
+	static ArrayList <Body> system = new ArrayList<Body>();
     public MyPanel() {
     	add(new Body(1000,20,Color.yellow,0,0,300,300));
         add(new Body(10,5,Color.white,1.5,0,200,200));
@@ -45,13 +213,23 @@ class MyPanel extends JPanel {
     	    	physics.calculateChanges(system);
     		    }	
     		};
-        	Timer time = new Timer(timerInt, updateClockAction);
+        	time = new Timer(timerInt, updateClockAction);
         	time.start();
+        	
+  
     }
     
    public void add(Body b){system.add(b);}
-   public void changeTime(int t){timerInt = t;}
-    
+   public static void clear(){system.clear();}
+   public static void loadGas(){
+	   system.add(new Body(10,5,Color.white,0,0,200,200));
+   }
+   public static void loadSolar(){
+	   system.add(new Body(10,5,Color.yellow,0,0,200,200));
+   }
+   public static void loadGalaxy(){
+	   system.add(new Body(10,5,Color.blue,0,0,200,200));
+   }
 
     public Dimension getPreferredSize() {
         return new Dimension(600,600);
@@ -72,6 +250,36 @@ class MyPanel extends JPanel {
             g2.draw(object);
             g2.fill(object);
         }
-    }  
+    }
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}  
    
 }
