@@ -1,9 +1,12 @@
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -83,7 +86,6 @@ public class GUI {
 			public void actionPerformed(ActionEvent e) {
 					MyPanel.clear();
 			}
-    		
     	});
         
         /** Load the Gas Cloud loadout **/
@@ -93,7 +95,6 @@ public class GUI {
 					MyPanel.clear();
 					MyPanel.loadGas();
 			}
-    		
     	});
         
         /** Load the Solar System loadout **/
@@ -103,7 +104,6 @@ public class GUI {
 					MyPanel.clear();
 					MyPanel.loadSolar();
 			}
-    		
     	});
         
         /** Load the Galaxy loadout **/
@@ -113,7 +113,6 @@ public class GUI {
 					MyPanel.clear();
 					MyPanel.loadGalaxy();
 			}
-    		
     	});
         
         /** If the Save Screen as image is clicked**/
@@ -134,8 +133,35 @@ public class GUI {
 						e1.printStackTrace();
 					}
 			}
-    		
     	});
+        
+        /** Create a Panel to change clickSize, clickMass**/
+        changeSettings.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+			  MyPanel.time.stop();
+			  JPanel p = new JPanel();
+			  JTextField size = new JTextField(10);
+			  JTextField mass = new JTextField(10);
+
+			  p.add(new JLabel("Size: "));
+			  p.add(size);
+			  p.add(new JLabel("Mass: "));
+			  p.add(mass);
+
+			  JOptionPane.showConfirmDialog(null, p, "Change Creation Settings ", JOptionPane.OK_CANCEL_OPTION);
+			  String buffer = size.getText();
+			  if(buffer.isEmpty())
+				  buffer = "1";
+			  if(0<Double.valueOf(buffer))
+				  MyPanel.clickSize = Integer.valueOf(buffer);
+			  buffer = mass.getText();
+			  if(buffer.isEmpty())
+				  buffer = "1";
+			  MyPanel.clickMass = Integer.valueOf(buffer);
+			  MyPanel.time.start();
+			}
+        });
         
         /** Make the updateClockAction run more frequently **/
         fastForward.addActionListener(new ActionListener(){
@@ -143,7 +169,6 @@ public class GUI {
 			public void actionPerformed(ActionEvent e) {
 					MyPanel.time.setDelay(MyPanel.time.getDelay() / 4);
 			}
-    		
     	});
         
         /** Make the updateClockAction run less frequently **/
@@ -152,7 +177,6 @@ public class GUI {
 			public void actionPerformed(ActionEvent e) {
 				MyPanel.time.setDelay(MyPanel.time.getDelay() * 4);
 			}
-    		
     	});
         
         /** Stop the timer, and pause the simulation **/
@@ -161,17 +185,47 @@ public class GUI {
 			public void actionPerformed(ActionEvent e) {
 				MyPanel.time.stop();
 			}
-    		
     	});
         
-        /** Start the timer and resume the simulation**/
+        /** Start the timer and resume the simulation **/
         resume.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				MyPanel.time.start();
 			}
-    		
     	});
+        
+        /** Display the Instructions **/
+        howto.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//Pause the Sim
+				MyPanel.time.stop();
+				
+				 //Create All of the Instruction Panels
+				  JPanel p1 = new JPanel();
+				  String settings = "Change Settings:<br><br>"+
+						    "To change the settings of each created Body go to: <br>" +
+						    "Edit -> Change Settings... <br> and set the desired mass and size." +
+							"The speed and position of each body is determined by where your"+
+						    " mouse moves when you click, and places the body where your mouse is when you release.";
+				  p1.add(new JLabel("<html><body><p style='width: 250px;'>"+ settings + "</body></html>"));
+				  JPanel p2 = new JPanel();
+				  String Fun = "Have Fun!:<br><br>"+
+						    "Have fun experimenting with gravity!";
+				  p2.add(new JLabel("<html><body><p style='width: 250px;'>"+ Fun + "</body></html>"));
+				  
+				  //And add them to a tabbed pane to make it pretty
+				  JTabbedPane tPane = new JTabbedPane();
+				  tPane.addTab("Fun", p2);
+				  tPane.addTab("Settings",p1);
+
+				  JOptionPane.showConfirmDialog(null, tPane, "Change Creation Settings ", JOptionPane.OK_CANCEL_OPTION);
+				  
+				  //Then resume the Sim
+				  MyPanel.time.start();
+			}
+        });
         
         /** Open the about JOptionPane and talk about 
                how great I am                         **/
@@ -187,17 +241,20 @@ public class GUI {
 					    "About",
 					    JOptionPane.INFORMATION_MESSAGE);
 			}
-    		
     	});
-        
     } 
 }
 
+
 class MyPanel extends JPanel implements MouseListener{
+	public static int clickSize = 5, clickMass = 10;
+	public static double clickVelX = 0, clickVelY = 0;
+	public static Color clickColor = Color.white;
 	public static Timer time;
 	private static int timerInt = 50;
 	static ArrayList <Body> system = new ArrayList<Body>();
     public MyPanel() {
+    	addMouseListener(this);
     	add(new Body(1000,20,Color.yellow,0,0,300,300));
         add(new Body(10,5,Color.white,1.5,0,200,200));
         //add(new Body(10,5,Color.red,-1,0,400,400));
@@ -254,7 +311,8 @@ class MyPanel extends JPanel implements MouseListener{
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
+		//System.out.println("Clicked");
+		//add(new Body(clickMass,clickSize,Color.white,clickVelX,clickVelY,e.getX(),e.getY()));
 		
 	}
 
@@ -266,7 +324,7 @@ class MyPanel extends JPanel implements MouseListener{
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
+		add(new Body(clickMass,clickSize,clickColor,clickVelX,clickVelY,e.getX()+clickSize/2,e.getY()+clickSize/2));
 		
 	}
 
