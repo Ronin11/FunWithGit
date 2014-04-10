@@ -248,14 +248,15 @@ public class GUI {
 
 class MyPanel extends JPanel implements MouseListener{
 	public static int clickSize = 5, clickMass = 10;
-	public static double clickVelX = 0, clickVelY = 0;
+	public static double clickVelX = 0, clickVelY = 0, calcX, calcY;
+	public static long calcT;
 	public static Color clickColor = Color.white;
 	public static Timer time;
 	private static int timerInt = 50;
 	static ArrayList <Body> system = new ArrayList<Body>();
     public MyPanel() {
     	addMouseListener(this);
-    	add(new Body(1000,20,Color.yellow,0,0,300,300));
+    	add(new Body(10000,20,Color.yellow,0,0,300,300));
         add(new Body(10,5,Color.white,1.5,0,200,200));
         //add(new Body(10,5,Color.red,-1,0,400,400));
         
@@ -311,33 +312,31 @@ class MyPanel extends JPanel implements MouseListener{
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		//System.out.println("Clicked");
-		//add(new Body(clickMass,clickSize,Color.white,clickVelX,clickVelY,e.getX(),e.getY()));
-		
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+		/** Get the position and time of the first mouse press to determine body speed **/
+		calcX = e.getX();
+		calcY = e.getY();
+		calcT = e.getWhen();
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
+		/** Create a body with the specific settings and speeds calculated from the mouse **/
+		clickVelX = (calcX - e.getX())/(calcT - e.getWhen()) * timerInt / 5;
+		clickVelY = (calcY - e.getY())/(calcT - e.getWhen()) * timerInt / 5;
 		add(new Body(clickMass,clickSize,clickColor,clickVelX,clickVelY,e.getX()+clickSize/2,e.getY()+clickSize/2));
 		
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}  
    
 }

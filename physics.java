@@ -3,21 +3,27 @@ import java.util.ArrayList;
 
 public class physics {
 	private final static double G = 6.6738489E-11; //Newton's "Big" G
-	private final static double Multiplier = 10E9; //Gravity Equation Multiplier
+	private final static double Multiplier = 10E8; //Gravity Equation Multiplier
 	
 	private static double calculateGravity(Body m1, Body m2, boolean returnX){
 		/***** Newton's universal law of gravitation with
 		    	the distance formula substituted for r^2 ****/
-		double force = ((G*m1.getMass()*m2.getMass())/
-						 (StrictMath.pow((m2.getposx()-m1.getposx()),2) 
+		double force = ((G*m1.getMass()*m2.getMass())
+						/ (StrictMath.pow((m2.getposx()-m1.getposx()),2) 
 						   + StrictMath.pow((m2.getposy() - m1.getposy()), 2)));
 		
-		double angle = StrictMath.atan((m2.getposy()-m1.getposy())/(m2.getposx()-m1.getposx()));
+		double angle = Math.atan((m2.getposy()-m1.getposy())/(m2.getposx()-m1.getposx()));
 		
 		if(returnX) //If we want the X component of the force.
-			force = force * StrictMath.cos(angle);
+			if(m2.getposx() < m1.getposx())
+				force = force * Math.cos(angle) * -1;//
+			else
+				force = force * Math.cos(angle);
 		else //Else, we want the Y component of the force.
-			force = force * StrictMath.sin(angle);
+			if(m2.getposy() < m1.getposy())
+				force = force * Math.sin(angle) * -1;  //
+			else
+				force = force * Math.sin(angle);
 		return force;
 	}
 	
@@ -33,8 +39,31 @@ public class physics {
 		double yAccel = 0;
 		for (Body body: system){
 			if(b != body){
+				if(crash(body,b)){
+					/*
+					b.setMass(b.getMass()+body.getMass());
+					b.setSize(b.getSize()+body.getSize());
+					b.setColor(b.getColor());
+					b.setvelx(b.getvelx()*b.getMass()+body.getvelx()*body.getMass()
+							/(b.getMass() + body.getMass()));
+					b.setvely(b.getvely()*b.getMass()+body.getvely()*body.getMass()
+							/(b.getMass() + body.getMass()));
+					if(b.getMass() > body.getMass()){
+						b.setposx(b.getposx());
+						b.setposy(b.getposy());
+					}
+					else{
+						b.setposx(b.getposx());
+						b.setposy(b.getposy());
+					}
+					//system.remove(b);
+					break;
+					*/
+				}
+				else{	
 				xAccel += calculateAcceleration(calculateGravity(b,body,true),b);
 				yAccel += calculateAcceleration(calculateGravity(b,body,false),b);
+				}
 			}
 		}
 		xAccel = Multiplier * xAccel; // Static Multipliers to
@@ -55,6 +84,15 @@ public class physics {
 		velChanges(b,system);
 		posChanges(b);
 		}
+	}
+	
+	private static boolean crash(Body m1, Body m2){
+		if(StrictMath.sqrt(StrictMath.pow((m2.getposx()-m1.getposx()),2) 
+						   + StrictMath.pow((m2.getposy() - m1.getposy()), 2)) < (m1.getSize() + m2.getSize())){
+			return true;
+		}
+		else 
+			return false;
 	}
 
 }
