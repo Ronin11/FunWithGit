@@ -13,15 +13,16 @@ public class physics {
 						   + StrictMath.pow((m2.getposy() - m1.getposy()), 2)));
 		
 		double angle = Math.atan((m2.getposy()-m1.getposy())/(m2.getposx()-m1.getposx()));
-		
 		if(returnX) //If we want the X component of the force.
-			if(m2.getposx() < m1.getposx())
-				force = force * Math.cos(angle) * -1;//
+			if(m2.getposx() < m1.getposx() && m2.getposy() > m1.getposy()
+					|| m2.getposx() < m1.getposx() && m2.getposy() < m1.getposy())
+				force = force * Math.cos(angle) * -1;
 			else
 				force = force * Math.cos(angle);
 		else //Else, we want the Y component of the force.
-			if(m2.getposy() < m1.getposy())
-				force = force * Math.sin(angle) * -1;  //
+			if(m2.getposx() < m1.getposx() && m2.getposy() > m1.getposy()
+						|| m2.getposx() < m1.getposx() && m2.getposy() < m1.getposy())
+				force = force * Math.sin(angle) * -1;
 			else
 				force = force * Math.sin(angle);
 		return force;
