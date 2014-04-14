@@ -256,8 +256,8 @@ class MyPanel extends JPanel implements MouseListener{
 	static ArrayList <Body> system = new ArrayList<Body>();
     public MyPanel() {
     	addMouseListener(this);
-    	add(new Body(10000,20,Color.yellow,0,0,300,300));
-        add(new Body(10,5,Color.white,2,0,200,200));
+    	add(new Body(1000,20,Color.yellow,0,0,300,300));
+        add(new Body(1,5,Color.white,.6,0,300,175));
         //add(new Body(10,5,Color.red,-1,0,400,400));
         
         
