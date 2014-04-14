@@ -10,13 +10,8 @@ import java.awt.Color;
  *
  */
 
-<<<<<<< HEAD
 public class Body {
 	public Body(){
-=======
-public class body {
-	public body(){
->>>>>>> master
 		mass = 100;
 		size = 1;
 		velX = 0;
