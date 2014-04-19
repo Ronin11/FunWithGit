@@ -11,16 +11,6 @@ import java.awt.Color;
  */
 
 public class Body {
-	public Body(){
-		mass = 100;
-		size = 1;
-		velX = 0;
-		velY = 0;
-		posX = 0;
-		posY = 0;
-		color = Color.white;
-	}
-	
 	public Body(int mass, int size, Color color, double velX, double velY, double posX, double posY){
 		this.mass = mass;
 		this.size = size;
@@ -29,8 +19,8 @@ public class Body {
 		this.velY = velY;
 		this.posX = posX;
 		this.posY = posY;
-		
 	}
+	
 	//Getters
 	public int getMass(){return mass;}
 	public int getSize(){return size;}
@@ -39,6 +29,8 @@ public class Body {
 	public double getposx(){return posX+velX;}
 	public double getposy(){return posY+velY;}
 	public Color getColor(){return color;}
+	public boolean getLocked(){return lockedInPlace;}
+	
 	//Setters
 	public void setMass(int m){mass = m;}
 	public void setSize(int s){size = s;}
@@ -47,6 +39,7 @@ public class Body {
 	public void setposx(double p){posX = p;}
 	public void setposy(double p){posY = p;}
 	public void setColor(Color c){color = c;}
+	public void setLocked(boolean b){lockedInPlace = b;}
 	
 	//Member Variables
 	private Color color;
@@ -56,5 +49,6 @@ public class Body {
 	private double velY;
 	private double posX;
 	private double posY;
+	private boolean lockedInPlace;
 
 }

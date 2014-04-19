@@ -13,9 +13,11 @@ import javax.swing.Timer;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Robot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,6 +28,20 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
+
+/**
+ * 
+ * @author Ronin
+ * 
+ * 	The GUI does everything that the user
+ * 	sees or notices. It paints the system,
+ * 	and takes the user interaction with the
+ *  mouse to create new bodies, and to 
+ *  change different settings.
+ *
+ */
 
 public class GUI {
 	
@@ -38,13 +54,13 @@ public class GUI {
         file = new JMenu("File");
         edit = new JMenu("Edit");
         help = new JMenu("Help");
-        changeMode = new JMenu("Change Mode...");
+        changeMode = new JMenu("Load...");
         
         JMenuItem changeSettings = new JMenuItem("Change Settings...");
         JMenuItem voidofSpace = new JMenuItem("Black Void");
         JMenuItem cloud = new JMenuItem("Gas Cloud");
         JMenuItem solar = new JMenuItem("Solar System");
-        JMenuItem galaxy = new JMenuItem("Galaxy");
+        JMenuItem blackHole = new JMenuItem("Black Hole");
         JMenuItem saveImage = new JMenuItem("Save Screen as Image");
         JMenuItem fastForward = new JMenuItem("Speed Up Time");
         JMenuItem slowDown	= new JMenuItem("Slow Down Time");
@@ -56,7 +72,7 @@ public class GUI {
         changeMode.add(voidofSpace);
         changeMode.add(cloud);
         changeMode.add(solar);
-        changeMode.add(galaxy);
+        changeMode.add(blackHole);
         file.add(saveImage);
         file.add(changeMode);
         edit.add(changeSettings);
@@ -104,8 +120,8 @@ public class GUI {
 			}
     	});
         
-        /** Load the Galaxy loadout **/
-        galaxy.addActionListener(new ActionListener(){
+        /** Load the blackHole loadout **/
+        blackHole.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
 					MyPanel.clear();
@@ -120,8 +136,11 @@ public class GUI {
 					try {
 						/** Write the screen to an image file. **/
 						File file = new File("Gravity ScreenShot.png");
-							if (!file.exists())
-							file.createNewFile();
+						int i = 1;
+						while(file.exists()){
+							file = new File("Gravity ScreenShot(" + i++ + ").png");
+						}
+						file.createNewFile();
 						BufferedImage image = new Robot().createScreenCapture(new Rectangle(pane.getLocationOnScreen().x, pane.getLocationOnScreen().y, pane.getWidth(), pane.getHeight()));
 						ImageIO.write(image, "png", file);
 						
@@ -151,13 +170,19 @@ public class GUI {
 			  String buffer = size.getText();
 			  if(buffer.isEmpty())
 				  buffer = "1";
-			  if(0<Double.valueOf(buffer))
-				  MyPanel.clickSize = Integer.valueOf(buffer);
-			  buffer = mass.getText();
-			  if(buffer.isEmpty())
-				  buffer = "1";
-			  MyPanel.clickMass = Integer.valueOf(buffer);
-			  MyPanel.time.start();
+			  //If the user is being dumb, get after them, and resume the sim.
+			  try{
+				  if(0<Double.valueOf(buffer))
+					  MyPanel.clickSize = Integer.valueOf(buffer);
+				  buffer = mass.getText();
+				  if(buffer.isEmpty())
+					  buffer = "1";
+				  MyPanel.clickMass = Integer.valueOf(buffer);
+				  MyPanel.time.start();
+			  }catch(NumberFormatException error){
+				  JOptionPane.showMessageDialog(p, "Please input non-negative integers for creation settings");
+				  MyPanel.time.start();
+			  }
 			}
         });
         
@@ -208,17 +233,25 @@ public class GUI {
 							"The speed and position of each body is determined by where your"+
 						    " mouse moves when you click, and places the body where your mouse is when you release.";
 				  p1.add(new JLabel("<html><body><p style='width: 250px;'>"+ settings + "</body></html>"));
+				  
 				  JPanel p2 = new JPanel();
 				  String Fun = "Have Fun!:<br><br>"+
 						    "Have fun experimenting with gravity!";
 				  p2.add(new JLabel("<html><body><p style='width: 250px;'>"+ Fun + "</body></html>"));
 				  
+				  JPanel p3 = new JPanel();
+				  String Help = "Not Moving?:<br><br>"+
+						    "Click the speed up option a few times," + 
+						  "sometimes things are just moving slow!";
+				  p3.add(new JLabel("<html><body><p style='width: 250px;'>"+ Help + "</body></html>"));
+				  
 				  //And add them to a tabbed pane to make it pretty
 				  JTabbedPane tPane = new JTabbedPane();
-				  tPane.addTab("Fun", p2);
+				  tPane.addTab("Help", p3);
 				  tPane.addTab("Settings",p1);
+				  tPane.addTab("Fun", p2);
 
-				  JOptionPane.showConfirmDialog(null, tPane, "Change Creation Settings ", JOptionPane.OK_CANCEL_OPTION);
+				  JOptionPane.showConfirmDialog(null, tPane, "Help: How to ", JOptionPane.OK_CANCEL_OPTION);
 				  
 				  //Then resume the Sim
 				  MyPanel.time.start();
@@ -246,17 +279,17 @@ public class GUI {
 
 class MyPanel extends JPanel implements MouseListener{
 	public static int clickSize = 5, clickMass = 10;
-	public static double clickVelX = 0, clickVelY = 0, calcX, calcY;
-	public static long calcT;
-	public static Color clickColor = Color.white;
+	private static double clickVelX = 0, clickVelY = 0, calcX, calcY;
+	private static long calcT;
+	private static Color clickColor = Color.white;
 	public static Timer time;
 	private static int timerInt = 50;
+	private static boolean title = true;
 	static ArrayList <Body> system = new ArrayList<Body>();
     public MyPanel() {
     	addMouseListener(this);
-    	add(new Body(1000,20,Color.yellow,0,0,300,300));
-        add(new Body(1,5,Color.white,.6,0,300,175));
-        //add(new Body(10,5,Color.red,-1,0,400,400));
+    	add(new Body(10000,40,Color.yellow,0,0,300,300));
+        add(new Body(10,10,Color.CYAN,.6,0,300,175));
         
         
         /** Add a Timer to run everything in specific intervals, that 
@@ -267,6 +300,24 @@ class MyPanel extends JPanel implements MouseListener{
     		public void actionPerformed(ActionEvent e) {
     	    	repaint();
     	    	physics.calculateChanges(system);
+    	    	
+    	    	/** If any of the bodies are incredibly far away with no hope of 
+    	    	 * returning to the screen, then delete them for memory cleanup. 
+    	    	 * And add a random body that might interact with the bodies on the screen. **/
+    	    	boolean removedABody = false;
+    	    	
+    	    	//Use an iterator to prevent ConcurrentModificationExceptions
+    	    	Iterator<Body> iter = system.iterator();
+    	    	while (iter.hasNext()) {
+    	    		Body b = iter.next();
+    	    		if(b.getposx() > 1500 || b.getposx() < -900 
+    	    				|| b.getposy() > 1500 || b.getposy() < -900){
+    	    			iter.remove();
+    	    			removedABody = true;
+    	    			}
+    	    		}
+    	    	if(removedABody)
+    	    		add(randomBody(10,10,1));
     		    }	
     		};
         	time = new Timer(timerInt, updateClockAction);
@@ -275,37 +326,105 @@ class MyPanel extends JPanel implements MouseListener{
   
     }
     
-   public void add(Body b){system.add(b);}
+   public static void add(Body b){system.add(b);}
    public static void clear(){system.clear();}
+   public static void remove(Body b){system.remove(b);}
+   
+   /** Load the Gas Cloud loudout **/
    public static void loadGas(){
-	   system.add(new Body(10,5,Color.white,0,0,200,200));
+	   /** Randomly create the gas cloud, max body size is 1 
+	    * and max body mass is 1 and max speed is .05**/
+	   for(int i = 0; i < 75; i++){
+	   system.add(randomBody(1,1,.05));
+	   }
    }
+   
+   /** Load the Solar system loadout **/
    public static void loadSolar(){
-	   system.add(new Body(10,5,Color.yellow,0,0,200,200));
+   	Body Sun = new Body((int)(10000),20,Color.yellow,0,0,300,300);
+   	Sun.setLocked(true);
+   	Body Mercury = new Body((int)(5),2, Color.gray,1.1,0,300,255);
+   	Body Venus = new Body((int)(9),2, Color.orange,-.7,0,300,375);
+   	Body Earth = new Body((int)(10),2, Color.blue,.4,0,300,155);
+   	Body Mars = new Body((int)(6),2, Color.red,-.3,0,300,555);
+   	system.add(Sun);
+   	system.add(Mercury);
+   	system.add(Venus);
+   	system.add(Earth);
+   	system.add(Mars);
    }
+   
+   /** Load the Galaxy loadout **/
    public static void loadGalaxy(){
-	   system.add(new Body(10,5,Color.blue,0,0,200,200));
+	   	/** Make a massive ass black body **/
+	   	Body hole = new Body((int)(1000000),5,Color.black,0,0,300,300);
+	   	hole.setLocked(true);
+	   	system.add(hole);
+		   /** Randomly create the gas cloud, max body size is 5 and max body mass is 5 and max speed is 5**/
+		   for(int i = 0; i < 75; i++){
+			   system.add(randomBody(5,5,0));
+		   }
    }
-
+   
+   /** Create a random body in or close to being inside the screen. **/
+   private static Body randomBody(int maxsize, int maxmass, double maxspeed){
+	   Random rand = new Random();
+	   	   int size = rand.nextInt(maxsize);
+	   	   int mass = rand.nextInt(maxmass);
+		   double vx = rand.nextDouble()*maxspeed*2-maxspeed;
+		   double vy = rand.nextDouble()*maxspeed*2-maxspeed;
+		   int px = rand.nextInt(600);
+		   int py = rand.nextInt(600);
+		   int r = rand.nextInt(255);
+		   int g = rand.nextInt(255);
+		   int b = rand.nextInt(255);
+		   if(size < 1)
+			   size = 1;
+		   if(mass < 1)
+			   mass = 1;
+		   Body randB = new Body(mass,size,new Color(r, g, b),vx,vy,px,py);
+		   return randB;
+	   
+   }
+   
+   /** Set the size for the window when it opens **/
     public Dimension getPreferredSize() {
         return new Dimension(600,600);
     }
     
+    /** Paint the new JPanel for the user to see **/
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-
         for (Body b: system) {
             Ellipse2D object = new Ellipse2D.Double();
             object.setFrameFromCenter(
-                b.getposx() - b.getSize(),
-                b.getposy() - b.getSize(),
                 b.getposx(),
-                b.getposy());
+                b.getposy(),
+                b.getposx() - b.getSize()/2,
+                b.getposy() - b.getSize()/2);
             g2.setColor(b.getColor());
             g2.draw(object);
             g2.fill(object);
         }
+        //Create the opening screen text.
+        if(title)
+        	doDrawing(g);
+    }
+    
+    /** Create the opening screen for the user **/
+    private void doDrawing(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+        RenderingHints rh =
+            new RenderingHints(RenderingHints.KEY_ANTIALIASING, 
+            RenderingHints.VALUE_ANTIALIAS_ON);
+        rh.put(RenderingHints.KEY_RENDERING,
+               RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHints(rh);
+        g2d.setFont(new Font("Forte", Font.PLAIN, 40));
+        g2d.drawString("Gravity", 230, 245);
+        g2d.setFont(new Font("Forte", Font.PLAIN, 20));
+        g2d.drawString("Click anywhere to play", 195, 390);
     }
 
 	@Override
@@ -322,11 +441,15 @@ class MyPanel extends JPanel implements MouseListener{
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
+		//Display the title, until the first click
+		if(title)
+			title = false;
+		else{
 		/** Create a body with the specific settings and speeds calculated from the mouse **/
-		clickVelX = (calcX - e.getX())/(calcT - e.getWhen()) * timerInt / 5;
-		clickVelY = (calcY - e.getY())/(calcT - e.getWhen()) * timerInt / 5;
+		clickVelX = (calcX - e.getX())/(calcT - e.getWhen()) * 5;// * timerInt / 5;
+		clickVelY = (calcY - e.getY())/(calcT - e.getWhen()) * 5;// * timerInt / 5;
 		add(new Body(clickMass,clickSize,clickColor,clickVelX,clickVelY,e.getX()+clickSize/2,e.getY()+clickSize/2));
-		
+		}
 	}
 
 	@Override
