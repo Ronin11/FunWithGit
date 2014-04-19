@@ -3,7 +3,7 @@ import java.util.ArrayList;
 
 /**
  * 
- * @author Ronin
+ * @author Nate Ashby
  * 
  * 	The physics class contains all of the different calculations
  *  that control the simulation. The GUI will call calculateChanges
@@ -15,8 +15,8 @@ import java.util.ArrayList;
 public class physics {
 	private final static double G = 6.6738489E-11; //Newton's "Big" G
 	private final static double Multiplier = 10E7; //Gravity Equation Multiplier
-	private ArrayList<Body> additions = new ArrayList<Body>(), 
-							deletions = new ArrayList<Body>();
+	private static ArrayList<Body> additions = new ArrayList<Body>(),
+									deletions = new ArrayList<Body>();
 	
 	private static double calculateGravity(Body m1, Body m2, boolean returnX){
 		/***** Newton's universal law of gravitation with
@@ -56,9 +56,40 @@ public class physics {
 		double xAccel = 0;
 		double yAccel = 0;
 		for (Body body: system){
-			if(b != body){	
-				xAccel += calculateAcceleration(calculateGravity(b,body,true),b);
-				yAccel += calculateAcceleration(calculateGravity(b,body,false),b);
+			if(body.getSize() > 500)
+				deletions.add(body);
+			if(b != body){
+				
+				/** Check the entire system for collisions and make
+				 *  the necessary changes. This way will prevent the 
+				 *  ConcurrentModificationExceptions I've been fighting **/
+				Body test = crash(b,body);
+				if( test != null){
+					if(!body.getLocked())
+						//Bodies get added to the list twice because a crashes
+						//into b and b also crashes into a.
+						//Added if statements to make sure that things aren't being
+						//double counted.
+						if(!deletions.contains(body))
+							deletions.add(body);
+					if(!b.getLocked())
+						if(!deletions.contains(b))
+							deletions.add(b);
+					if(!b.getLocked() || !body.getLocked()){
+						boolean add = true;
+						for(int i = 0; i < additions.size(); i++){
+							if(test.equals(additions.get(i)))
+								add = false;
+						}
+						if(add)
+							additions.add(test);
+					}
+				}
+				//If there's no collision, then just do the calculations.
+				else{
+					xAccel += calculateAcceleration(calculateGravity(b,body,true),b);
+					yAccel += calculateAcceleration(calculateGravity(b,body,false),b);
+				}
 				}
 			}
 		xAccel = Multiplier * xAccel; // Static Multipliers to
@@ -79,28 +110,20 @@ public class physics {
 		velChanges(b,system);
 		posChanges(b);
 		}
-		systemCollisions(system);
-	}
-	
-	/** Check the entire system for collisions by creating
-	 *  a temp system, and iterating through it, and making
-	 *  the necessary changes. This way will prevent the 
-	 *  ConcurrentModificationExceptions I've been fighting **/
-	private static void systemCollisions(ArrayList <Body> system){
-		ArrayList <Body> temp = system;
-		for (int i = 0; i < temp.size()-1; i++) {
-			for(int j = i+1; j < temp.size()-1; j++){
-				Body body = crash(temp.get(i),temp.get(j));
-				if( body != null){
-					//if(!system.get(i).getLocked())
-						//system.remove(i);
-					//if(!system.get(j).getLocked())
-						//system.remove(j);
-					//if(!system.get(i).getLocked() || !system.get(i).getLocked())
-						//system.add(body);
-					
-				}
+		for(int i = 0; i < deletions.size(); i++){
+			system.remove(deletions.get(i));
+			if(i % 2 == 0) //Replace a body for each one that gets eaten.
+				MyPanel.replace();
+		}
+		deletions.clear();
+		//For the black hole mode, don't add any bodies.
+		if(MyPanel.getMode() != MyPanel.mode.hole){
+			for(int i = 0; i < additions.size(); i++){
+				if(additions.get(i).getSize() < 500) // only add stuff if it's not exploding
+					if(system.size() < 100)			// and limit body number to save the cpu
+						system.add(additions.get(i));
 			}
+			additions.clear();
 		}
 	}
 	
@@ -111,7 +134,7 @@ public class physics {
 		//Distance formula to determine if two bodies are touching
 		if(StrictMath.sqrt(StrictMath.pow((m2.getposx()-m1.getposx()),2) 
 						   + StrictMath.pow((m2.getposy() - m1.getposy()), 2)) 
-						   		< (m1.getSize() + m2.getSize())-5){
+						   		< (m1.getSize() + m2.getSize())){
 			int mass,size;
 			double vX,vY,pX,pY;
 			Color color;

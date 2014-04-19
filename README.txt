@@ -1,4 +1,3 @@
-Nate Ashby A01383689
 
 Gravity is a simple and cool planetary motion simulator.  To use, run the executable,
 or compile the source code yourself.

@@ -33,7 +33,7 @@ import java.util.Random;
 
 /**
  * 
- * @author Ronin
+ * @author Nate Ashby
  * 
  * 	The GUI does everything that the user
  * 	sees or notices. It paints the system,
@@ -49,7 +49,9 @@ public class GUI {
     public static void createAndShowGUI() {
         JFrame f = new JFrame("Gravity");
         JMenuBar menubar = new JMenuBar();
-        JMenu file,edit,help,changeMode;
+        JMenu file;
+		final JMenu edit;
+		JMenu help, changeMode;
         
         file = new JMenu("File");
         edit = new JMenu("Edit");
@@ -64,8 +66,10 @@ public class GUI {
         JMenuItem saveImage = new JMenuItem("Save Screen as Image");
         JMenuItem fastForward = new JMenuItem("Speed Up Time");
         JMenuItem slowDown	= new JMenuItem("Slow Down Time");
-        JMenuItem pause = new JMenuItem("Pause");
-        JMenuItem resume = new JMenuItem("Resume");
+        final JMenuItem pause = new JMenuItem("Pause");
+        final JMenuItem resume = new JMenuItem("Resume");
+        final JMenuItem enableReplace = new JMenuItem("Enable Replacement");
+        final JMenuItem disableReplace = new JMenuItem("Disable Replacement");
         JMenuItem howto = new JMenuItem("How To...");
         JMenuItem about = new JMenuItem("About"); 
         
@@ -79,7 +83,7 @@ public class GUI {
         edit.add(fastForward);
         edit.add(slowDown);
         edit.add(pause);
-        edit.add(resume);
+        edit.add(disableReplace);
         help.add(howto);
         help.add(about);
         menubar.add(file);
@@ -99,6 +103,7 @@ public class GUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 					MyPanel.clear();
+					MyPanel.loadVoid();
 			}
     	});
         
@@ -207,6 +212,10 @@ public class GUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				MyPanel.time.stop();
+		        //Switch the pause and resume options depending
+		        //on the state of the panel
+		        edit.add(resume);
+		        edit.remove(pause);
 			}
     	});
         
@@ -215,6 +224,28 @@ public class GUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				MyPanel.time.start();
+				edit.add(pause);
+		        edit.remove(resume);
+			}
+    	});
+        
+        /** Disable the infinite body replacement **/
+        disableReplace.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MyPanel.setReplace(false);
+				edit.remove(disableReplace);
+		        edit.add(enableReplace);
+			}
+    	});
+        
+        /** Enable the infinite body replacement **/
+        enableReplace.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MyPanel.setReplace(true);
+				edit.add(disableReplace);
+		        edit.remove(enableReplace);
 			}
     	});
         
@@ -283,11 +314,14 @@ class MyPanel extends JPanel implements MouseListener{
 	private static long calcT;
 	private static Color clickColor = Color.white;
 	public static Timer time;
+	public enum mode {start,thevoid,cloud,solar,hole};
+	private static mode gameMode;
 	private static int timerInt = 50;
-	private static boolean title = true;
+	private static boolean title = true,replacement = true;
 	static ArrayList <Body> system = new ArrayList<Body>();
     public MyPanel() {
     	addMouseListener(this);
+    	gameMode = mode.start;
     	add(new Body(10000,40,Color.yellow,0,0,300,300));
         add(new Body(10,10,Color.CYAN,.6,0,300,175));
         
@@ -316,8 +350,9 @@ class MyPanel extends JPanel implements MouseListener{
     	    			removedABody = true;
     	    			}
     	    		}
-    	    	if(removedABody)
-    	    		add(randomBody(10,10,1));
+    	    	if(removedABody){
+    	    		replace();
+    	    		}
     		    }	
     		};
         	time = new Timer(timerInt, updateClockAction);
@@ -329,11 +364,40 @@ class MyPanel extends JPanel implements MouseListener{
    public static void add(Body b){system.add(b);}
    public static void clear(){system.clear();}
    public static void remove(Body b){system.remove(b);}
+   public static mode getMode(){return gameMode;}
+   public static void setReplace(boolean b){replacement = b;}
+   public static void replace(){
+	   if(replacement){
+		   switch(gameMode){
+		   case start:
+			   add(randomBody(10,10,1));
+			   break;
+		   case thevoid:
+			   add(randomBody(10,10,1));
+			   break;
+		   case cloud:
+			   add(randomBody(1,1,.05));
+			   break;
+		   case solar:
+			   add(randomBody(10,10,1));
+			   break;
+		   case hole:
+			   add(randomBody(25,25,5));
+			   break;
+	   }
+		}
+   }
+   
+   /**Load the void layout **/
+   public static void loadVoid(){
+	   gameMode = mode.thevoid;
+   }
    
    /** Load the Gas Cloud loudout **/
    public static void loadGas(){
 	   /** Randomly create the gas cloud, max body size is 1 
 	    * and max body mass is 1 and max speed is .05**/
+	   gameMode = mode.cloud;
 	   for(int i = 0; i < 75; i++){
 	   system.add(randomBody(1,1,.05));
 	   }
@@ -341,6 +405,7 @@ class MyPanel extends JPanel implements MouseListener{
    
    /** Load the Solar system loadout **/
    public static void loadSolar(){
+	   gameMode = mode.solar;
    	Body Sun = new Body((int)(10000),20,Color.yellow,0,0,300,300);
    	Sun.setLocked(true);
    	Body Mercury = new Body((int)(5),2, Color.gray,1.1,0,300,255);
@@ -356,6 +421,7 @@ class MyPanel extends JPanel implements MouseListener{
    
    /** Load the Galaxy loadout **/
    public static void loadGalaxy(){
+	   gameMode = mode.hole;
 	   	/** Make a massive ass black body **/
 	   	Body hole = new Body((int)(1000000),5,Color.black,0,0,300,300);
 	   	hole.setLocked(true);

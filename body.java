@@ -1,7 +1,7 @@
 import java.awt.Color;
 /**
  * 
- * @author Ronin
+ * @author Nate Ashby
  * 
  * 	The body class is a simple object used in the Gravity program.
  *  All bodies will have the six variables associated with them to
@@ -19,6 +19,22 @@ public class Body {
 		this.velY = velY;
 		this.posX = posX;
 		this.posY = posY;
+	}
+	
+	//Overloaded Methods
+	/** This method determines if two bodies are
+	 *  the same. Because it's nearly impossible
+	 *  to have exactly the same values for everything.
+	 *  so there's a little room for error.  **/
+	public boolean equals(Body b){
+		if(this.posX - b.getposx() < 5){
+			if(this.posY - b.getposy() < 5){
+				if(this.size == b.getSize()){
+					return true;
+				}
+			}
+		}
+		return false;	
 	}
 	
 	//Getters
