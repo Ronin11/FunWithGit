@@ -1,7 +1,7 @@
 import java.awt.Color;
 /**
  * 
- * @author Nate Ashby
+ * @author Ronin
  * 
  * 	The body class is a simple object used in the Gravity program.
  *  All bodies will have the six variables associated with them to
