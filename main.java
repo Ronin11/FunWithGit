@@ -1,7 +1,7 @@
 
 /**
  * 
- * @author Nate Ashby
+ * @author Ronin
  * 
  * 	The main class is just a formality used
  *  to create the GUI. And to store some unneeded

@@ -3,7 +3,7 @@ import java.util.ArrayList;
 
 /**
  * 
- * @author Nate Ashby
+ * @author Ronin
  * 
  * 	The physics class contains all of the different calculations
  *  that control the simulation. The GUI will call calculateChanges
